@@ -7,130 +7,119 @@ int main()
 {
     srand(time(NULL));
     setlocale(LC_ALL, "Russian");
-    int n = 10, ** G = NULL, size = 0, * degree = NULL, * loop = NULL;
-    printf("Введите количество вершин:");
-    scanf("%d", &n);
-    printf("\n");
+	int n = 10, ** G = NULL, count = 0, * deg = NULL, * loop = NULL, ** I, count_i = 0, * deg_i = NULL, * loop_i = NULL, sum = 0;
 
-    degree = (int*)calloc(n, sizeof(int));
-    loop = (int*)calloc(n, sizeof(int));
-    G = (int**)malloc(n * sizeof(int*));
+	srand(time(NULL));
 
-    for (int i = 0; i < n; i++)
-    {
-        G[i] = (int*)calloc(n, sizeof(int));
-    }
+	printf("N = ");
+	scanf("%d", &n);
+	printf("\n");
 
-    for (int i = 0; i < n; i++)
-        for (int j = i; j < n; j++)
-        {
-            G[i][j] = rand() % 2;
-            G[j][i] = G[i][j];
-            size += G[i][j];
+	G = (int**)malloc(n * sizeof(int*));
+	deg = (int*)malloc(n * sizeof(int));
+	loop = (int*)malloc(n * sizeof(int));
+	deg_i = (int*)malloc(n * sizeof(int));
+	loop_i = (int*)malloc(n * sizeof(int));
 
-            if (i == j)
-            {
-                degree[i] += 2 * G[i][j];
-                loop[i] += 2 * G[i][j];
-            }
-            else
-            {
-                degree[i] += G[i][j];
-                degree[j] += G[i][j];
-            }
-            
-        }
 
-    printf("Матрица смежности:\n");
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            printf("%d ", G[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
+	for (int i = 0; i < n; i++) {
+		deg[i] = 0;
+		loop[i] = 0;
+		deg_i[i] = 0;
+		loop_i[i] = 0;
+		G[i] = (int*)malloc(n * sizeof(int));
+	}
 
-    printf("Размер: %d \n\n", size);
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			G[i][j] = rand() % 2;
+			G[j][i] = G[i][j];
+			count += G[i][j];
+		}
+	}
 
-    for (int i = 0; i < n; i++)
-    {
-        if (degree[i] - loop[i] == 0)
-            printf("Вершина %d - Изолированная\n", i);
-        if (degree[i] - loop[i] == 1)
-            printf("Вершина %d - Концевая\n", i);
-        if (degree[i] - loop[i] == n)
-            printf("Вершина %d - Доминирующая\n", i);
-    }
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			if (i == j) {
+				loop[i] += 2 * G[j][i];
+				deg[i] += 2 * G[j][i];
+			}
+			else {
+				deg[i] += G[j][i];
+			}
+		}
+	}
 
-    // ---Task 2---
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			printf("%d ", G[i][j]);
+		}
+		printf("\n");
+	}
 
-    int m = size, ** IncMatrix = NULL;
+	printf("\nРазмер = %d\n\n", count);
 
-    // Выделение памяти для матрицы инцидентности
-    IncMatrix = (int**)malloc(n * sizeof(int*));
-    for (int i = 0; i < n; i++)
-        IncMatrix[i] = (int*)calloc(m, sizeof(int));
 
-    // Генерация матрицы инцидентности из матрицы смежности
-    int edgeIndex = 0;
-    for (int i = 0; i < n; i++) {
-        for (int j = i; j < n; j++) {
-            if (G[i][j] > 0) {
-                if (i == j) {
-                    IncMatrix[i][edgeIndex] = 2; // Петля
-                }
-                else {
-                    IncMatrix[i][edgeIndex] = 1;
-                    IncMatrix[j][edgeIndex] = 1;
-                }
-                edgeIndex++;
-            }
-        }
-    }
+	for (int i = 0; i < n; i++) {
+		if (deg[i] - loop[i] == 0) printf("Вершина %d - Изолированная\n", i);
+		if (deg[i] - loop[i] == 1) printf("Вершина %d - Концевая\n", i);
+		if (deg[i] - loop[i] == n - 1) printf("Вершина %d - Доминирующая\n", i);
+	}
+	printf("\n");
 
-    // Вывод матрицы инцидентности
-    printf("\nМатрица инцидентности:\n");
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < m; j++) {
-            printf("%d ", IncMatrix[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
+	I = (int**)malloc(n * sizeof(int*));
 
-    // Проверка и вывод свойств вершин
-    for (int i = 0; i < n; i++) {
-        // Изолированная вершина: не имеет соединений
-        if (degree[i] - loop[i] == 0) {
-            printf("Вершина %d - Изолированная\n", i);
-        }
-        // Концевая вершина: имеет ровно одно соединение
-        else if (degree[i] - loop[i] == 1) {
-            printf("Вершина %d - Концевая\n", i);
-        }
-        // Проверка на доминирующую вершину
-        else {
-            int connections = 0;
-            for (int j = 0; j < n; j++) {
-                if (i != j && G[i][j] == 1) { // Считаем связи только с другими вершинами
-                    connections++;
-                }
-            }
-            if (connections == n - 1) { // Соединена со всеми вершинами, кроме себя
-                printf("Вершина %d - Доминирующая\n", i);
-            }
-        }
-    }
+	for (int i = 0; i < n; i++) {
+		I[i] = (int*)malloc(count * sizeof(int));
+		for (int j = 0; j < count; j++) {
+			I[i][j] = 0;
+		}
+	}
+
+
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			if (G[i][j] == 1) {
+				if (i != j) {
+					I[i][count_i] = 1;
+					I[j][count_i] = 1;
+				}
+				else {
+					I[i][count_i] = 2;
+				}
+				count_i++;
+			}
+		}
+	}
+
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < count; j++) {
+			printf("%d ", I[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("\nРазмер = %d\n\n", count_i);
+
+
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < count; j++) {
+			if (I[i][j] == 1) {
+				deg_i[i] += I[i][j];
+			}
+		}
+	}
+
+	for (int i = 0; i < n; i++) {
+		if (deg_i[i] == 0) printf("Вершина %d - Изолированная\n", i);
+		if (deg_i[i] == 1) printf("Вершина %d - Концевая\n", i);
+		if (deg_i[i] == n - 1) printf("Вершина %d - Доминирующая\n", i);
+	}
 
     for (int i = 0; i < n; i++) {
         free(G[i]);
-        free(IncMatrix[i]);
     }
     free(G);
-    free(IncMatrix);
-    free(degree);
     free(loop);
 
     return 0;
